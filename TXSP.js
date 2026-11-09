@@ -756,34 +756,42 @@
     return gz ? gzip(out) : out;
   }
 
-  function main() {
-    const url = $request.url || "", host = (url.split("/")[2] || "").split(":")[0];
-    const isResp = typeof $response !== "undefined" && $response !== null;
-    try {
-      if (!isResp) {
-        const b = host === "i.video.qq.com" ? toU8($request.bodyBytes) : null;
-        const r = b && b.length ? onTrpcRequest(b) : null;
-        $done(r ? { bodyBytes: toBuf(r) } : {});
-        return;
-      }
-      if (host === "rdelivery.qq.com") {
-        const s = typeof $response.body === "string" ? $response.body : "";
-        const o = /"tab_gray"\s*:\s*true/.test(s) ? s.replace(/("tab_gray"\s*:\s*)true/, "$1false") : null;
-        $done(o ? { body: o } : {});
-        return;
-      }
-      const b = toU8($response.bodyBytes);
-      let r = null;
-      if (b && b.length) {
-        if (host === "i.video.qq.com") r = onTrpcResponse(b);
-        else if (host === "iacc.qq.com") r = onJce(b);
-        else if (host === "config.ab.qq.com" && url.split("?")[0].endsWith("/tab/GetTabRemoteConfig")) r = onAbConfig(b);
-      }
-      $done(r ? { bodyBytes: toBuf(r) } : {});
-    } catch (e) {
-      console.log("txvideo-ad-clean: " + e);
-      $done({});
+function main() {
+  const url = $request.url || "", host = (url.split("/")[2] || "").split(":")[0];
+  const isResp = typeof $response !== "undefined" && $response !== null;
+  const isLoon = typeof $loon !== "undefined";
+  const getBytes = x => toU8(x && x.bodyBytes) || toU8(x && x.body);
+  const doneBytes = x => $done(x ? (isLoon ? { body: x } : { bodyBytes: toBuf(x) }) : {});
+  try {
+    if (!isResp) {
+      const b = host === "i.video.qq.com" ? getBytes($request) : null;
+      const r = b && b.length ? onTrpcRequest(b) : null;
+      doneBytes(r);
+      return;
     }
+    if (host === "rdelivery.qq.com") {
+      const s = typeof $response.body === "string" ? $response.body : "";
+      const o = /"tab_gray"\s*:\s*true/.test(s)
+        ? s.replace(/("tab_gray"\s*:\s*)true/, "$1false")
+        : null;
+      $done(o ? { body: o } : {});
+      return;
+    }
+    const b = getBytes($response);
+    let r = null;
+
+    if (b && b.length) {
+      if (host === "i.video.qq.com") r = onTrpcResponse(b);
+      else if (host === "iacc.qq.com") r = onJce(b);
+      else if (host === "config.ab.qq.com" &&
+        url.split("?")[0].endsWith("/tab/GetTabRemoteConfig"))
+        r = onAbConfig(b);
+    }
+    doneBytes(r);
+  } catch (e) {
+    console.log("txvideo-ad-clean: " + e);
+    $done({});
   }
+}
   main();
 })();
