@@ -1,0 +1,20 @@
+
+#!name = 腾讯视频净化
+#!author = 转发自@ZenMoFiShi
+#!desc = 去除开屏广告、视频播放前广告、底部多余Tab栏、我的页面广告
+#!date = 2026-11-03
+#!version = 1.0
+
+[Rule]
+DOMAIN,iacc.stgw.qq.com,REJECT
+DOMAIN,tacc.video.qq.com,REJECT
+
+[Script]
+http-request ^https?:\/\/i\.video\.qq\.com\/(?:\?.*)?$ script-path=https://raw.githubusercontent.com/ZZQQ1122/-Rewrite/refs/heads/master/TXSP.js,requires-body=true,binary-body-mode=true,timeout=20,tag=腾讯视频请求净化,enable=true
+http-response ^https?:\/\/i\.video\.qq\.com\/(?:\?.*)?$ script-path=https://raw.githubusercontent.com/ZZQQ1122/-Rewrite/refs/heads/master/TXSP.js,requires-body=true,binary-body-mode=true,timeout=20,tag=腾讯视频响应净化,enable=true
+http-response ^https?:\/\/iacc\.qq\.com\/(?:\?.*)?$ script-path=https://raw.githubusercontent.com/ZZQQ1122/-Rewrite/refs/heads/master/TXSP.js,requires-body=true,binary-body-mode=true,timeout=20,tag=腾讯视频广告净化,enable=true
+http-response ^https?:\/\/config\.ab\.qq\.com\/tab\/GetTabRemoteConfig(?:\?.*)?$ script-path=https://raw.githubusercontent.com/ZZQQ1122/-Rewrite/refs/heads/master/TXSP.js,requires-body=true,binary-body-mode=true,timeout=20,tag=腾讯视频底栏净化,enable=true
+http-response ^https:\/\/rdelivery\.qq\.com\/v1\/sdkconfig\/get(?:\?.*)?$ script-path=https://raw.githubusercontent.com/ZZQQ1122/-Rewrite/refs/heads/master/TXSP.js,requires-body=true,binary-body-mode=false,timeout=20,tag=腾讯视频配置净化,enable=true
+
+[MITM]
+hostname = i.video.qq.com, iacc.qq.com, config.ab.qq.com, rdelivery.qq.com
